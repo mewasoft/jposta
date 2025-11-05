@@ -24,7 +24,7 @@ const parseCsv = () => {
 	let chunk: {
 		key: string;
 		data: {
-			[key: string]: [number, string, string];
+			[key: string]: [number, number, string, string];
 		};
 	} = {
 		key: "",
@@ -46,6 +46,7 @@ const parseCsv = () => {
 				: rawArea;
 
 		const prefNum = Number.parseInt(code.slice(0, 2));
+		const cityCode = Number.parseInt(code.slice(2, 5));
 		if (!pref) {
 			console.error(
 				`pref not found prefNum:${prefNum} record:${JSON.stringify(record)}`,
@@ -73,7 +74,7 @@ const parseCsv = () => {
 			continue;
 		}
 
-		chunk.data[zip] = [prefNum, city, area];
+		chunk.data[zip] = [prefNum, cityCode, city, area];
 	}
 
 	// write the last chunk

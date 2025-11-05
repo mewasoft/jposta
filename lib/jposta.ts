@@ -61,8 +61,14 @@ const prefs = [
 export type Address = {
 	pref: string;
 	prefNum: number;
+	cityCode: number;
 	city: string;
 	area?: string;
+};
+
+export type City = {
+	key: number;
+	name: string;
 };
 
 export const getAddress = async (zipCode: string): Promise<Address | null> => {
@@ -84,11 +90,12 @@ export const getAddress = async (zipCode: string): Promise<Address | null> => {
 		return null;
 	}
 
-	const [prefNum, city, area] = json[zip];
+	const [prefNum, cityCode, city, area] = json[zip];
 	const pref = prefs[prefNum - 1];
 
 	if (
 		typeof prefNum !== "number" ||
+		typeof cityCode !== "number" ||
 		typeof city !== "string" ||
 		typeof area !== "string" ||
 		typeof pref !== "string"
@@ -99,6 +106,7 @@ export const getAddress = async (zipCode: string): Promise<Address | null> => {
 	return {
 		pref: pref,
 		prefNum: prefNum,
+		cityCode: cityCode,
 		city: city,
 		area: area || undefined,
 	};
@@ -124,12 +132,12 @@ export const getPrefs = (): string[] => {
 	return prefs;
 };
 
-export const getCitiesByPref = async (prefIndex: number): Promise<string[]> => {
+export const getCitiesByPref = async (prefIndex: number): Promise<City[]> => {
 	if (!Number.isInteger(prefIndex) || prefIndex < 1 || prefIndex > 47) {
 		throw new Error(`Prefecture index must be an integer between 1 and 47: ${prefIndex}`);
 	}
 
-	const citiesSet = new Set<string>();
+	const citiesMap = new Map<number, string>();
 
 	// Load all JSON chunks (z00 to z99)
 	for (let i = 0; i <= 99; i++) {
@@ -140,9 +148,9 @@ export const getCitiesByPref = async (prefIndex: number): Promise<string[]> => {
 
 			// Iterate through all postal codes in this chunk
 			for (const [, addressData] of Object.entries(json)) {
-				const [prefNum, city] = addressData as [number, string, string];
-				if (prefNum === prefIndex && city) {
-					citiesSet.add(city);
+				const [prefNum, cityCode, city] = addressData as [number, number, string, string];
+				if (prefNum === prefIndex && city && !citiesMap.has(cityCode)) {
+					citiesMap.set(cityCode, city);
 				}
 			}
 		} catch (error) {
@@ -151,6 +159,8 @@ export const getCitiesByPref = async (prefIndex: number): Promise<string[]> => {
 		}
 	}
 
-	// Convert Set to sorted array
-	return Array.from(citiesSet).sort();
+	// Convert Map to array of City objects and sort by city code
+	return Array.from(citiesMap.entries())
+		.map(([key, name]) => ({ key, name }))
+		.sort((a, b) => a.key - b.key);
 };
