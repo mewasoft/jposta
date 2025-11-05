@@ -123,3 +123,34 @@ export const configureJposta = (config: Partial<JpostaConfig>) => {
 export const getPrefs = (): string[] => {
 	return prefs;
 };
+
+export const getCitiesByPref = async (prefIndex: number): Promise<string[]> => {
+	if (!Number.isInteger(prefIndex) || prefIndex < 1 || prefIndex > 47) {
+		throw new Error(`Prefecture index must be an integer between 1 and 47: ${prefIndex}`);
+	}
+
+	const citiesSet = new Set<string>();
+
+	// Load all JSON chunks (z00 to z99)
+	for (let i = 0; i <= 99; i++) {
+		const chunk = i.toString().padStart(2, '0');
+		try {
+			const json = await fetchJson(chunk);
+			if (!json) continue;
+
+			// Iterate through all postal codes in this chunk
+			for (const [, addressData] of Object.entries(json)) {
+				const [prefNum, city] = addressData as [number, string, string];
+				if (prefNum === prefIndex && city) {
+					citiesSet.add(city);
+				}
+			}
+		} catch (error) {
+			// Continue even if a chunk fails to load
+			continue;
+		}
+	}
+
+	// Convert Set to sorted array
+	return Array.from(citiesSet).sort();
+};

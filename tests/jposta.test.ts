@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { getAddress, getPrefs } from "../lib";
+import { getAddress, getPrefs, getCitiesByPref } from "../lib";
 
 test.each(["bomb", "aaa-bbbb", "123456a"])(
 	"getAddress(%s) throws an error",
@@ -127,4 +127,71 @@ test("getPrefs returns the list of prefectures", () => {
 		"鹿児島県",
 		"沖縄県",
 	]);
+});
+
+test.each([0, 48, -1, 1.5, "1", null, undefined])(
+	"getCitiesByPref(%s) throws an error for invalid prefecture index",
+	async (prefIndex) => {
+		await expect(getCitiesByPref(prefIndex as any)).rejects.toThrow();
+	},
+);
+
+test("getCitiesByPref(13) returns Tokyo cities", async () => {
+	const cities = await getCitiesByPref(13);
+	expect(cities).toContain("千代田区");
+	expect(cities).toContain("中央区");
+	expect(cities).toContain("港区");
+	expect(cities).toContain("新宿区");
+	expect(cities).toContain("墨田区");
+	expect(cities).toContain("江戸川区");
+	expect(cities).toContain("江東区");
+	expect(Array.isArray(cities)).toBe(true);
+	expect(cities.length).toBeGreaterThan(20);
+	// Check that cities are sorted
+	expect(cities).toEqual([...cities].sort());
+});
+
+test("getCitiesByPref(27) returns Osaka cities", async () => {
+	const cities = await getCitiesByPref(27);
+	expect(cities).toContain("大阪市中央区");
+	expect(cities).toContain("大阪市北区");
+	expect(cities).toContain("大阪市西区");
+	expect(Array.isArray(cities)).toBe(true);
+	expect(cities.length).toBeGreaterThan(30);
+	expect(cities).toEqual([...cities].sort());
+});
+
+test("getCitiesByPref(1) returns Hokkaido cities", async () => {
+	const cities = await getCitiesByPref(1);
+	expect(cities).toContain("札幌市中央区");
+	expect(cities).toContain("札幌市北区");
+	expect(cities).toContain("函館市");
+	expect(cities).toContain("旭川市");
+	expect(Array.isArray(cities)).toBe(true);
+	expect(cities.length).toBeGreaterThan(150);
+	expect(cities).toEqual([...cities].sort());
+});
+
+test("getCitiesByPref returns unique cities only", async () => {
+	const cities = await getCitiesByPref(13);
+	const uniqueCities = [...new Set(cities)];
+	expect(cities).toEqual(uniqueCities);
+	expect(cities.length).toBe(uniqueCities.length);
+});
+
+test("getCitiesByPref returns array for all valid prefecture indices", async () => {
+	// Test a few more prefectures to ensure the function works generally
+	const testCases = [
+		{ index: 11, expectedCity: "さいたま市" }, // Saitama
+		{ index: 14, expectedCity: "横浜市" }, // Kanagawa
+		{ index: 23, expectedCity: "名古屋市" }, // Aichi
+	];
+
+	for (const { index, expectedCity } of testCases) {
+		const cities = await getCitiesByPref(index);
+		expect(Array.isArray(cities)).toBe(true);
+		expect(cities.length).toBeGreaterThan(0);
+		// Check that the expected city is in the results (may be exact match or part of a longer city name)
+		expect(cities.some(city => city.includes(expectedCity))).toBe(true);
+	}
 });
