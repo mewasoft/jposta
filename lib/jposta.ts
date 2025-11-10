@@ -67,7 +67,12 @@ export type Address = {
 };
 
 export type City = {
-	key: number;
+	key: string;
+	name: string;
+};
+
+export type Pref = {
+	key: string;
 	name: string;
 };
 
@@ -128,16 +133,20 @@ export const configureJposta = (config: Partial<JpostaConfig>) => {
 	currentConfig.host = config.host || defaultConfig.host;
 };
 
-export const getPrefs = (): string[] => {
-	return prefs;
+export const getPrefs = (): Pref[] => {
+	return prefs.map((name, index) => ({
+		key: String(index + 1).padStart(2, '0'),
+		name: name
+	}));
 };
 
-export const getCitiesByPref = async (prefIndex: number): Promise<City[]> => {
-	if (!Number.isInteger(prefIndex) || prefIndex < 1 || prefIndex > 47) {
+export const getCitiesByPref = async (prefIndex: string | number): Promise<City[]> => {
+	const prefNumber = typeof prefIndex === 'string' ? parseInt(prefIndex) : prefIndex;
+	if (!Number.isInteger(prefNumber) || prefNumber < 1 || prefNumber > 47) {
 		throw new Error(`Prefecture index must be an integer between 1 and 47: ${prefIndex}`);
 	}
 
-	const citiesMap = new Map<number, string>();
+	const citiesMap = new Map<string, string>();
 
 	// Load all JSON chunks (z00 to z99)
 	for (let i = 0; i <= 99; i++) {
@@ -149,8 +158,8 @@ export const getCitiesByPref = async (prefIndex: number): Promise<City[]> => {
 			// Iterate through all postal codes in this chunk
 			for (const [, addressData] of Object.entries(json)) {
 				const [prefNum, cityCode, city] = addressData as [number, number, string, string];
-				if (prefNum === prefIndex && city && !citiesMap.has(cityCode)) {
-					citiesMap.set(cityCode, city);
+				if (prefNum === prefNumber && city && !citiesMap.has(cityCode.toString())) {
+					citiesMap.set(cityCode.toString(), city);
 				}
 			}
 		} catch (error) {
@@ -162,5 +171,5 @@ export const getCitiesByPref = async (prefIndex: number): Promise<City[]> => {
 	// Convert Map to array of City objects and sort by city code
 	return Array.from(citiesMap.entries())
 		.map(([key, name]) => ({ key, name }))
-		.sort((a, b) => a.key - b.key);
+		.sort((a, b) => parseInt(a.key) - parseInt(b.key));
 };

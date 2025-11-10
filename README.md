@@ -46,17 +46,22 @@ console.log(address2);
 // get list of prefectures
 const prefs = getPrefs();
 console.log(prefs);
-// ["北海道", "青森県", "岩手県", ...]
+// [
+//   { key: "01", name: "北海道" },
+//   { key: "02", name: "青森県" },
+//   { key: "03", name: "岩手県" },
+//   ...
+// ]
 
 // get cities by prefecture (NEW!)
 const tokyoCities = await getCitiesByPref(13); // 13 = Tokyo
 console.log(tokyoCities);
 // [
-//   { key: 101, name: "千代田区" },
-//   { key: 102, name: "中央区" },
-//   { key: 103, name: "港区" },
-//   { key: 104, name: "新宿区" },
-//   { key: 105, name: "文京区" },
+//   { key: "101", name: "千代田区" },
+//   { key: "102", name: "中央区" },
+//   { key: "103", name: "港区" },
+//   { key: "104", name: "新宿区" },
+//   { key: "105", name: "文京区" },
 //   ...
 // ]
 
@@ -64,9 +69,9 @@ console.log(tokyoCities);
 const hokkaidoCities = await getCitiesByPref(1); // 1 = Hokkaido
 console.log(hokkaidoCities);
 // [
-//   { key: 101, name: "札幌市中央区" },
-//   { key: 102, name: "札幌市北区" },
-//   { key: 103, name: "札幌市東区" },
+//   { key: "101", name: "札幌市中央区" },
+//   { key: "102", name: "札幌市北区" },
+//   { key: "103", name: "札幌市東区" },
 //   ...
 // ]
 ```
@@ -80,7 +85,9 @@ const cities = await getCitiesByPref(prefIndex);
 ```
 
 **Parameters:**
-- `prefIndex` (number): Prefecture index (1-47, where 1=北海道, 13=東京都, 27=大阪府, etc.)
+- `prefIndex` (number | string): Prefecture index (1-47, where 1=北海道, 13=東京都, 27=大阪府, etc.)
+  - Accepts both numbers: `13`
+  - And strings: `"13"`, `"01"`, etc.
 
 **Returns:**
 - `Promise<City[]>`: Array of city objects with `key` and `name` properties
@@ -88,25 +95,48 @@ const cities = await getCitiesByPref(prefIndex);
 **City Object Structure:**
 ```typescript
 interface City {
-  key: number;    // 3-digit city code (101-999)
+  key: string;    // 3-digit city code as string (101-999)
   name: string;   // City name in Japanese
+}
+```
+
+### 🆕 getPrefs Function
+
+The `getPrefs()` function returns an array of all 47 Japanese prefectures:
+
+```javascript
+const prefs = getPrefs();
+```
+
+**Returns:**
+- `Pref[]`: Array of prefecture objects with `key` and `name` properties
+
+**Pref Object Structure:**
+```typescript
+interface Pref {
+  key: string;    // Zero-padded prefecture code ("01"-"47")
+  name: string;   // Prefecture name in Japanese
 }
 ```
 
 **Example Usage:**
 ```javascript
-// Get all cities in Tokyo
-const tokyoCities = await getCitiesByPref(13);
-console.log(`Tokyo has ${tokyoCities.length} cities`);
+// Get all prefectures
+const prefs = getPrefs();
+console.log(`Japan has ${prefs.length} prefectures`);
 
-// Find specific city by code
-const chiyodaWard = tokyoCities.find(city => city.key === 101);
-console.log(chiyodaWard.name); // "千代田区"
+// Find specific prefecture by key
+const tokyo = prefs.find(pref => pref.key === "13");
+console.log(tokyo.name); // "東京都"
 
-// Cities are sorted by city code
-const sortedCities = await getCitiesByPref(13);
-console.log(sortedCities[0]); // { key: 101, name: "千代田区" }
-console.log(sortedCities[1]); // { key: 102, name: "中央区" }
+// Find prefecture by name
+const hokkaido = prefs.find(pref => pref.name === "北海道");
+console.log(hokkaido.key); // "01"
+
+// Prefectures are in numerical order by key
+console.log(prefs[0]);  // { key: "01", name: "北海道" }
+console.log(prefs[12]); // { key: "13", name: "東京都" }
+console.log(prefs[46]); // { key: "47", name: "沖縄県" }
 ```
 
 ### Enhanced Address Type
@@ -127,6 +157,33 @@ interface Address {
 - Tokyo (13): 101=千代田区, 102=中央区, 103=港区, 104=新宿区
 - Osaka (27): 102=大阪市都島区, 103=大阪市福島区, 104=大阪市此花区
 - Hokkaido (1): 101=札幌市中央区, 102=札幌市北区, 103=札幌市東区
+
+### getCitiesByPref Examples
+```javascript
+// Get all cities in Tokyo (using number)
+const tokyoCities = await getCitiesByPref(13);
+console.log(`Tokyo has ${tokyoCities.length} cities`);
+
+// Get all cities in Tokyo (using string)
+const tokyoCitiesFromString = await getCitiesByPref("13");
+console.log(`Tokyo has ${tokyoCitiesFromString.length} cities`);
+
+// Get all cities in Hokkaido (using zero-padded string)
+const hokkaidoCities = await getCitiesByPref("01");
+console.log(`Hokkaido has ${hokkaidoCities.length} cities`);
+
+// Find specific city by code (note: code is now a string)
+const chiyodaWard = tokyoCities.find(city => city.key === "101");
+console.log(chiyodaWard.name); // "千代田区"
+
+// Results are identical regardless of input type
+console.log(JSON.stringify(tokyoCities) === JSON.stringify(tokyoCitiesFromString)); // true
+
+// Cities are sorted by city code (even though keys are strings)
+const sortedCities = await getCitiesByPref(13);
+console.log(sortedCities[0]); // { key: "101", name: "千代田区" }
+console.log(sortedCities[1]); // { key: "102", name: "中央区" }
+```
 
 ### Error Handling
 
@@ -162,10 +219,16 @@ interface Address {
   area?: string;     // Area/neighborhood (optional)
 }
 
+// Pref object for getPrefs
+interface Pref {
+  key: string;     // Zero-padded prefecture code ("01"-"47")
+  name: string;    // Prefecture name in Japanese
+}
+
 // City object for getCitiesByPref
 interface City {
-  key: number;    // 3-digit city code (101-999)
-  name: string;   // City name in Japanese
+  key: string;     // 3-digit city code as string (101-999)
+  name: string;    // City name in Japanese
 }
 
 // Configuration options (if needed)
