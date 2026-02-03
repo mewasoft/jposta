@@ -129,42 +129,70 @@ const fetchJson = async (chunk: string) => {
 	return json;
 };
 
+const fetchPrefToChunksIndex = async (): Promise<Record<string, string[]> | null> => {
+	try {
+		if (currentConfig.host !== "") {
+			const { default: index } = await import(
+				`${currentConfig.host}/pref-to-chunks.json`
+			);
+			return index as Record<string, string[]>;
+		}
+
+		const { default: index } = await import("./zips/pref-to-chunks.json");
+		return index as Record<string, string[]>;
+	} catch {
+		return null;
+	}
+};
+
 export const configureJposta = (config: Partial<JpostaConfig>) => {
 	currentConfig.host = config.host || defaultConfig.host;
 };
 
 export const getPrefs = (): Pref[] => {
 	return prefs.map((name, index) => ({
-		key: String(index + 1).padStart(2, '0'),
-		name: name
+		key: String(index + 1).padStart(2, "0"),
+		name: name,
 	}));
 };
 
 export const getCitiesByPref = async (prefIndex: string | number): Promise<City[]> => {
-	const prefNumber = typeof prefIndex === 'string' ? parseInt(prefIndex) : prefIndex;
+	const prefNumber =
+		typeof prefIndex === "string" ? Number.parseInt(prefIndex, 10) : prefIndex;
 	if (!Number.isInteger(prefNumber) || prefNumber < 1 || prefNumber > 47) {
 		throw new Error(`Prefecture index must be an integer between 1 and 47: ${prefIndex}`);
 	}
 
 	const citiesMap = new Map<string, string>();
 
-	// Load all JSON chunks (z00 to z99)
-	for (let i = 0; i <= 99; i++) {
-		const chunk = i.toString().padStart(2, '0');
-		try {
-			const json = await fetchJson(chunk);
-			if (!json) continue;
+	// Determine which chunks to load using the index (fallback to all chunks if unavailable)
+	const index = await fetchPrefToChunksIndex();
+	const chunksToLoad =
+		index?.[String(prefNumber)] ??
+		Array.from({ length: 100 }, (_, i) => i.toString().padStart(2, "0"));
 
-			// Iterate through all postal codes in this chunk
-			for (const [, addressData] of Object.entries(json)) {
-				const [prefNum, cityCode, city] = addressData as [number, number, string, string];
-				if (prefNum === prefNumber && city && !citiesMap.has(cityCode.toString())) {
-					citiesMap.set(cityCode.toString(), city);
-				}
-			}
-		} catch (error) {
-			// Continue even if a chunk fails to load
+	// Load relevant chunks in parallel
+	const results = await Promise.allSettled(
+		chunksToLoad.map((chunk) => fetchJson(chunk)),
+	);
+
+	for (const result of results) {
+		if (result.status !== "fulfilled" || !result.value) {
 			continue;
+		}
+
+		const json = result.value as Record<string, [number, number, string, string]>;
+
+		// Iterate through all postal codes in this chunk
+		for (const [, addressData] of Object.entries(json)) {
+			const [prefNum, cityCode, city] = addressData;
+			if (
+				prefNum === prefNumber &&
+				city &&
+				!citiesMap.has(cityCode.toString())
+			) {
+				citiesMap.set(cityCode.toString(), city);
+			}
 		}
 	}
 

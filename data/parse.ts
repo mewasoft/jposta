@@ -21,6 +21,10 @@ const parseCsv = () => {
 	}
 
 	let count = 0;
+
+	// Track which prefectures appear in which chunks
+	const prefToChunksMap: Map<number, Set<string>> = new Map();
+
 	let chunk: {
 		key: string;
 		data: {
@@ -55,6 +59,13 @@ const parseCsv = () => {
 		}
 
 		const chunkKey = zip.slice(0, 2);
+
+		// Track which prefectures appear in which chunks
+		if (!prefToChunksMap.has(prefNum)) {
+			prefToChunksMap.set(prefNum, new Set());
+		}
+		prefToChunksMap.get(prefNum)!.add(chunkKey);
+
 		if (chunk.key === "") {
 			chunk = {
 				key: chunkKey,
@@ -81,6 +92,19 @@ const parseCsv = () => {
 	if (chunk.key !== "") {
 		fs.writeFileSync(`${OUTPUT_DIR}/z${chunk.key}.json`, JSON.stringify(chunk.data));
 	}
+
+	// build prefecture-to-chunks index
+	const prefToChunksIndex: Record<string, string[]> = {};
+	for (let prefNum = 1; prefNum <= 47; prefNum++) {
+		const chunks = prefToChunksMap.get(prefNum);
+		if (chunks && chunks.size > 0) {
+			prefToChunksIndex[String(prefNum)] = Array.from(chunks).sort();
+		}
+	}
+	fs.writeFileSync(
+		`${OUTPUT_DIR}/pref-to-chunks.json`,
+		JSON.stringify(prefToChunksIndex),
+	);
 
 	console.log(`processed ${count} records.`);
 };
