@@ -61,8 +61,19 @@ const prefs = [
 export type Address = {
 	pref: string;
 	prefNum: number;
+	cityCode: number;
 	city: string;
 	area?: string;
+};
+
+export type City = {
+	key: string;
+	name: string;
+};
+
+export type Pref = {
+	key: string;
+	name: string;
 };
 
 export const getAddress = async (zipCode: string): Promise<Address | null> => {
@@ -84,11 +95,12 @@ export const getAddress = async (zipCode: string): Promise<Address | null> => {
 		return null;
 	}
 
-	const [prefNum, city, area] = json[zip];
+	const [prefNum, cityCode, city, area] = json[zip];
 	const pref = prefs[prefNum - 1];
 
 	if (
 		typeof prefNum !== "number" ||
+		typeof cityCode !== "number" ||
 		typeof city !== "string" ||
 		typeof area !== "string" ||
 		typeof pref !== "string"
@@ -99,6 +111,7 @@ export const getAddress = async (zipCode: string): Promise<Address | null> => {
 	return {
 		pref: pref,
 		prefNum: prefNum,
+		cityCode: cityCode,
 		city: city,
 		area: area || undefined,
 	};
@@ -116,10 +129,101 @@ const fetchJson = async (chunk: string) => {
 	return json;
 };
 
+const fetchPrefToChunksIndex = async (): Promise<Record<string, string[]> | null> => {
+	try {
+		if (currentConfig.host !== "") {
+			const { default: index } = await import(
+				`${currentConfig.host}/pref-to-chunks.json`
+			);
+			return index as Record<string, string[]>;
+		}
+
+		const { default: index } = await import("./zips/pref-to-chunks.json");
+		return index as Record<string, string[]>;
+	} catch {
+		return null;
+	}
+};
+
+const fetchCitiesByPrefIndex = async (): Promise<Record<string, [number, string][]> | null> => {
+	try {
+		if (currentConfig.host !== "") {
+			const { default: index } = await import(
+				`${currentConfig.host}/cities-by-pref.json`
+			);
+			return index as unknown as Record<string, [number, string][]>;
+		}
+
+		const { default: index } = await import("./zips/cities-by-pref.json");
+		return index as unknown as Record<string, [number, string][]>;
+	} catch {
+		return null;
+	}
+};
+
 export const configureJposta = (config: Partial<JpostaConfig>) => {
 	currentConfig.host = config.host || defaultConfig.host;
 };
 
-export const getPrefs = (): string[] => {
-	return prefs;
+export const getPrefs = (): Pref[] => {
+	return prefs.map((name, index) => ({
+		key: String(index + 1).padStart(2, "0"),
+		name: name,
+	}));
+};
+
+export const getCitiesByPref = async (prefIndex: string | number): Promise<City[]> => {
+	const prefNumber =
+		typeof prefIndex === "string" ? Number.parseInt(prefIndex, 10) : prefIndex;
+	if (!Number.isInteger(prefNumber) || prefNumber < 1 || prefNumber > 47) {
+		throw new Error(`Prefecture index must be an integer between 1 and 47: ${prefIndex}`);
+	}
+
+	// Try to use the optimized cities-by-pref index first
+	const citiesIndex = await fetchCitiesByPrefIndex();
+	if (citiesIndex && citiesIndex[String(prefNumber)]) {
+		return citiesIndex[String(prefNumber)].map(([code, name]) => ({
+			key: code.toString(),
+			name,
+		}));
+	}
+
+	// Fallback to the old method if index is not available
+	const citiesMap = new Map<string, string>();
+
+	// Determine which chunks to load using the index (fallback to all chunks if unavailable)
+	const index = await fetchPrefToChunksIndex();
+	const chunksToLoad =
+		index?.[String(prefNumber)] ??
+		Array.from({ length: 100 }, (_, i) => i.toString().padStart(2, "0"));
+
+	// Load relevant chunks in parallel
+	const results = await Promise.allSettled(
+		chunksToLoad.map((chunk) => fetchJson(chunk)),
+	);
+
+	for (const result of results) {
+		if (result.status !== "fulfilled" || !result.value) {
+			continue;
+		}
+
+		const json = result.value as Record<string, [number, number, string, string]>;
+
+		// Iterate through all postal codes in this chunk
+		for (const [, addressData] of Object.entries(json)) {
+			const [prefNum, cityCode, city] = addressData;
+			if (
+				prefNum === prefNumber &&
+				city &&
+				!citiesMap.has(cityCode.toString())
+			) {
+				citiesMap.set(cityCode.toString(), city);
+			}
+		}
+	}
+
+	// Convert Map to array of City objects and sort by city code
+	return Array.from(citiesMap.entries())
+		.map(([key, name]) => ({ key, name }))
+		.sort((a, b) => parseInt(a.key) - parseInt(b.key));
 };

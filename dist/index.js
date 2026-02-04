@@ -1,11 +1,11 @@
-const a = (o, s, p) => {
-  const i = o[s];
-  return i ? typeof i == "function" ? i() : Promise.resolve(i) : new Promise((z, t) => {
-    (typeof queueMicrotask == "function" ? queueMicrotask : setTimeout)(t.bind(null, new Error("Unknown variable dynamic import: " + s + (s.split("/").length !== p ? ". Note that variables only represent file names one level deep." : ""))));
+const h = (o, s, n) => {
+  const t = o[s];
+  return t ? typeof t == "function" ? t() : Promise.resolve(t) : new Promise((p, e) => {
+    (typeof queueMicrotask == "function" ? queueMicrotask : setTimeout)(e.bind(null, new Error("Unknown variable dynamic import: " + s + (s.split("/").length !== n ? ". Note that variables only represent file names one level deep." : ""))));
   });
-}, j = {
+}, c = {
   host: ""
-}, n = j, e = [
+}, z = c, u = [
   "北海道",
   "青森県",
   "岩手県",
@@ -53,37 +53,87 @@ const a = (o, s, p) => {
   "宮崎県",
   "鹿児島県",
   "沖縄県"
-], f = async (o) => {
+], w = async (o) => {
   if (o.length !== 7 && o.length !== 8)
     throw new Error(`Zip code must be 7 or 8 characters: ${o}`);
   if (o.length === 8 && !/^\d{3}-\d{4}$/.test(o))
     throw new Error(`Invalid zip code: ${o}`);
   if (o.length === 7 && !/^\d{7}$/.test(o))
     throw new Error(`Invalid zip code: ${o}`);
-  const s = o.replace("-", ""), p = s.slice(0, 2), i = await c(p);
-  if (!i || !i[s])
+  const s = o.replace("-", ""), n = s.slice(0, 2), t = await f(n);
+  if (!t || !t[s])
     return null;
-  const [z, t, r] = i[s], m = e[z - 1];
-  if (typeof z != "number" || typeof t != "string" || typeof r != "string" || typeof m != "string")
-    throw new Error(`Internal error data broken: ${i[s]}`);
+  const [p, e, m, i] = t[s], r = u[p - 1];
+  if (typeof p != "number" || typeof e != "number" || typeof m != "string" || typeof i != "string" || typeof r != "string")
+    throw new Error(`Internal error data broken: ${t[s]}`);
   return {
-    pref: m,
-    prefNum: z,
-    city: t,
-    area: r || void 0
+    pref: r,
+    prefNum: p,
+    cityCode: e,
+    city: m,
+    area: i || void 0
   };
-}, c = async (o) => {
-  if (n.host !== "") {
-    const { default: p } = await import(`${n.host}/z${o}.json`);
-    return p;
+}, f = async (o) => {
+  if (z.host !== "") {
+    const { default: n } = await import(`${z.host}/z${o}.json`);
+    return n;
   }
-  const { default: s } = await a(/* @__PURE__ */ Object.assign({ "./zips/z00.json": () => import("./z00-DXktW3NJ.js"), "./zips/z01.json": () => import("./z01-B44LTnDq.js"), "./zips/z02.json": () => import("./z02-DDTQujDn.js"), "./zips/z03.json": () => import("./z03-8_QPrile.js"), "./zips/z04.json": () => import("./z04-DWCMp0q3.js"), "./zips/z05.json": () => import("./z05-BqbgwBoV.js"), "./zips/z06.json": () => import("./z06-CShPhk56.js"), "./zips/z07.json": () => import("./z07-DtotadkB.js"), "./zips/z08.json": () => import("./z08-C55jQ9wx.js"), "./zips/z09.json": () => import("./z09-C_OoEo3y.js"), "./zips/z10.json": () => import("./z10-eXY0nnaQ.js"), "./zips/z11.json": () => import("./z11-nic1O4vt.js"), "./zips/z12.json": () => import("./z12-CPsgy9G4.js"), "./zips/z13.json": () => import("./z13-BhlGx_IM.js"), "./zips/z14.json": () => import("./z14-CHy9g6WM.js"), "./zips/z15.json": () => import("./z15-3I3uEVry.js"), "./zips/z16.json": () => import("./z16-CE8bQ8Ez.js"), "./zips/z17.json": () => import("./z17-BhplFsts.js"), "./zips/z18.json": () => import("./z18-BapyRu4s.js"), "./zips/z19.json": () => import("./z19-rnlQag7g.js"), "./zips/z20.json": () => import("./z20-TNCuR5Vf.js"), "./zips/z21.json": () => import("./z21-C8oiUY1W.js"), "./zips/z22.json": () => import("./z22-B-160A75.js"), "./zips/z23.json": () => import("./z23-D90b57ue.js"), "./zips/z24.json": () => import("./z24-BtviAqW4.js"), "./zips/z25.json": () => import("./z25-DgyXUjAk.js"), "./zips/z26.json": () => import("./z26-JJ7BtXKw.js"), "./zips/z27.json": () => import("./z27-BijJWivT.js"), "./zips/z28.json": () => import("./z28-Cf_RX22O.js"), "./zips/z29.json": () => import("./z29-CVPdXf8S.js"), "./zips/z30.json": () => import("./z30-CEONMuBb.js"), "./zips/z31.json": () => import("./z31-BiAQuBur.js"), "./zips/z32.json": () => import("./z32-XoscwZkY.js"), "./zips/z33.json": () => import("./z33-DVbRtZT0.js"), "./zips/z34.json": () => import("./z34-BqDIpf2y.js"), "./zips/z35.json": () => import("./z35-Brj8-gne.js"), "./zips/z36.json": () => import("./z36-6TWbHXhw.js"), "./zips/z37.json": () => import("./z37-Byj7h3ES.js"), "./zips/z38.json": () => import("./z38-BI3OO9CD.js"), "./zips/z39.json": () => import("./z39-BBp2M-vl.js"), "./zips/z40.json": () => import("./z40-QQM92GAb.js"), "./zips/z41.json": () => import("./z41-CUKW0Jz7.js"), "./zips/z42.json": () => import("./z42-bReW_818.js"), "./zips/z43.json": () => import("./z43-CFSg5z59.js"), "./zips/z44.json": () => import("./z44-D_vEOoiJ.js"), "./zips/z45.json": () => import("./z45-Dpech6-h.js"), "./zips/z46.json": () => import("./z46-CdSJQTaf.js"), "./zips/z47.json": () => import("./z47-ChFeaMC_.js"), "./zips/z48.json": () => import("./z48-BoDWhBRO.js"), "./zips/z49.json": () => import("./z49-Bm26SWfp.js"), "./zips/z50.json": () => import("./z50-CTS-i5kb.js"), "./zips/z51.json": () => import("./z51-ClI2eqL8.js"), "./zips/z52.json": () => import("./z52-CRt2Rq-l.js"), "./zips/z53.json": () => import("./z53-m3tfdFw_.js"), "./zips/z54.json": () => import("./z54-WryQjkFO.js"), "./zips/z55.json": () => import("./z55-DLHxqhUx.js"), "./zips/z56.json": () => import("./z56-0qHapeyt.js"), "./zips/z57.json": () => import("./z57-DGgO8H3G.js"), "./zips/z58.json": () => import("./z58-B6_-aFeK.js"), "./zips/z59.json": () => import("./z59-C0hUz-JN.js"), "./zips/z60.json": () => import("./z60-34YubQWJ.js"), "./zips/z61.json": () => import("./z61-z-SLTsB-.js"), "./zips/z62.json": () => import("./z62-6I2I73FR.js"), "./zips/z63.json": () => import("./z63-CKSeQfns.js"), "./zips/z64.json": () => import("./z64-BpOab9TP.js"), "./zips/z65.json": () => import("./z65-D43Y8Ke2.js"), "./zips/z66.json": () => import("./z66-DVqcVGyn.js"), "./zips/z67.json": () => import("./z67-CkBYuUac.js"), "./zips/z68.json": () => import("./z68-CNhjEv_1.js"), "./zips/z69.json": () => import("./z69-Bb0sQUg-.js"), "./zips/z70.json": () => import("./z70-C3bLvvAv.js"), "./zips/z71.json": () => import("./z71-BOhafqCr.js"), "./zips/z72.json": () => import("./z72-4O3RbZAy.js"), "./zips/z73.json": () => import("./z73-D22SlQj3.js"), "./zips/z74.json": () => import("./z74-Szr3jGPV.js"), "./zips/z75.json": () => import("./z75-C-tOG4iC.js"), "./zips/z76.json": () => import("./z76-cUW23-fH.js"), "./zips/z77.json": () => import("./z77-T5fRkRpD.js"), "./zips/z78.json": () => import("./z78-CZBY62gV.js"), "./zips/z79.json": () => import("./z79-Da2ZQNiT.js"), "./zips/z80.json": () => import("./z80-knbeqTz4.js"), "./zips/z81.json": () => import("./z81-DzsrZSaJ.js"), "./zips/z82.json": () => import("./z82-CK1-saWU.js"), "./zips/z83.json": () => import("./z83-NCyjIBIz.js"), "./zips/z84.json": () => import("./z84-CUQ67_Ob.js"), "./zips/z85.json": () => import("./z85-CG2Kj7iq.js"), "./zips/z86.json": () => import("./z86-fFJQskOR.js"), "./zips/z87.json": () => import("./z87-D0-YboP6.js"), "./zips/z88.json": () => import("./z88-Dxdu7fID.js"), "./zips/z89.json": () => import("./z89-BxHsYiFo.js"), "./zips/z90.json": () => import("./z90-DuoGq_hZ.js"), "./zips/z91.json": () => import("./z91-D59XCWvJ.js"), "./zips/z92.json": () => import("./z92-C0_eOVM7.js"), "./zips/z93.json": () => import("./z93-DdcYlzo0.js"), "./zips/z94.json": () => import("./z94-BwEaQv09.js"), "./zips/z95.json": () => import("./z95-CF6_muOD.js"), "./zips/z96.json": () => import("./z96-CuBFgxoo.js"), "./zips/z97.json": () => import("./z97-BeruJGvc.js"), "./zips/z98.json": () => import("./z98-Qgk61Pz6.js"), "./zips/z99.json": () => import("./z99-D0dETOpp.js") }), `./zips/z${o}.json`, 3);
+  const { default: s } = await h(/* @__PURE__ */ Object.assign({ "./zips/z00.json": () => import("./z00-2hTTOIjv.js"), "./zips/z01.json": () => import("./z01-DEl0HpXc.js"), "./zips/z02.json": () => import("./z02-BzA_h5IH.js"), "./zips/z03.json": () => import("./z03-D7GPAFjf.js"), "./zips/z04.json": () => import("./z04-z2wQSvxf.js"), "./zips/z05.json": () => import("./z05-Bgyosesk.js"), "./zips/z06.json": () => import("./z06-CdQeQ4g9.js"), "./zips/z07.json": () => import("./z07-BpP-SoT9.js"), "./zips/z08.json": () => import("./z08-99ZBbLAs.js"), "./zips/z09.json": () => import("./z09-Ba5Uv9th.js"), "./zips/z10.json": () => import("./z10-B1Vzj5VG.js"), "./zips/z11.json": () => import("./z11-3SZSasOe.js"), "./zips/z12.json": () => import("./z12-BAIpMqAc.js"), "./zips/z13.json": () => import("./z13-BuAyVXcE.js"), "./zips/z14.json": () => import("./z14-BKPpnIIh.js"), "./zips/z15.json": () => import("./z15-vcNxuASB.js"), "./zips/z16.json": () => import("./z16-CZ0n_qdT.js"), "./zips/z17.json": () => import("./z17-BYyQDnqi.js"), "./zips/z18.json": () => import("./z18-BKEPQCeP.js"), "./zips/z19.json": () => import("./z19-B_y18hC1.js"), "./zips/z20.json": () => import("./z20-DljK8_Y_.js"), "./zips/z21.json": () => import("./z21-CpRY3tl-.js"), "./zips/z22.json": () => import("./z22-C0xpJmfT.js"), "./zips/z23.json": () => import("./z23-B5hJifW_.js"), "./zips/z24.json": () => import("./z24-BZUO6IJ9.js"), "./zips/z25.json": () => import("./z25-BlOZSTNg.js"), "./zips/z26.json": () => import("./z26-Cv-5UNnu.js"), "./zips/z27.json": () => import("./z27-BxuhFWk2.js"), "./zips/z28.json": () => import("./z28-Dxy3S0G1.js"), "./zips/z29.json": () => import("./z29-BeDaGzyy.js"), "./zips/z30.json": () => import("./z30-BeeRYZ1T.js"), "./zips/z31.json": () => import("./z31-DRtTGYH-.js"), "./zips/z32.json": () => import("./z32-C08UI6jW.js"), "./zips/z33.json": () => import("./z33-_emCkwzy.js"), "./zips/z34.json": () => import("./z34-BRqo20d1.js"), "./zips/z35.json": () => import("./z35-DmUnc2sv.js"), "./zips/z36.json": () => import("./z36-lbHtDhXL.js"), "./zips/z37.json": () => import("./z37-DrRyrN4O.js"), "./zips/z38.json": () => import("./z38-CjSPj_71.js"), "./zips/z39.json": () => import("./z39-DygvtizI.js"), "./zips/z40.json": () => import("./z40-GaT6AfGA.js"), "./zips/z41.json": () => import("./z41-ErU0Qmf8.js"), "./zips/z42.json": () => import("./z42-BABF7zvd.js"), "./zips/z43.json": () => import("./z43-CFvkqQ1H.js"), "./zips/z44.json": () => import("./z44-CYEW98sw.js"), "./zips/z45.json": () => import("./z45-Cl438dwM.js"), "./zips/z46.json": () => import("./z46-BLpjUvrY.js"), "./zips/z47.json": () => import("./z47-CkCGxZZA.js"), "./zips/z48.json": () => import("./z48-BUk1_8rb.js"), "./zips/z49.json": () => import("./z49-DZ4ew0sV.js"), "./zips/z50.json": () => import("./z50-Clh3k3QH.js"), "./zips/z51.json": () => import("./z51-tn3Kn1qm.js"), "./zips/z52.json": () => import("./z52-BSTptxH5.js"), "./zips/z53.json": () => import("./z53-BHtZViYX.js"), "./zips/z54.json": () => import("./z54-BRDZF7O8.js"), "./zips/z55.json": () => import("./z55-Bcm0CSx4.js"), "./zips/z56.json": () => import("./z56-Cpd170pb.js"), "./zips/z57.json": () => import("./z57-DuHA45uO.js"), "./zips/z58.json": () => import("./z58-BYvn4PNA.js"), "./zips/z59.json": () => import("./z59-Bqq_35UK.js"), "./zips/z60.json": () => import("./z60-CNEEC-p_.js"), "./zips/z61.json": () => import("./z61-D5TX9uy0.js"), "./zips/z62.json": () => import("./z62-DWr2Sk56.js"), "./zips/z63.json": () => import("./z63-BbHOwKPJ.js"), "./zips/z64.json": () => import("./z64-CGDJX6eX.js"), "./zips/z65.json": () => import("./z65-Bn1SFt6j.js"), "./zips/z66.json": () => import("./z66-rYacn4wJ.js"), "./zips/z67.json": () => import("./z67-Bu9UPB_m.js"), "./zips/z68.json": () => import("./z68-D_fbqsLg.js"), "./zips/z69.json": () => import("./z69-BOZ_JGoc.js"), "./zips/z70.json": () => import("./z70-BjeAkhNh.js"), "./zips/z71.json": () => import("./z71-gIHnyb-J.js"), "./zips/z72.json": () => import("./z72-Dtf39UN5.js"), "./zips/z73.json": () => import("./z73-C1PVQCh-.js"), "./zips/z74.json": () => import("./z74-D7M5iZJ2.js"), "./zips/z75.json": () => import("./z75-H1HGEqXS.js"), "./zips/z76.json": () => import("./z76-BBzfHrcs.js"), "./zips/z77.json": () => import("./z77-poi982XH.js"), "./zips/z78.json": () => import("./z78-KtAoTkdI.js"), "./zips/z79.json": () => import("./z79-DX5jgWMl.js"), "./zips/z80.json": () => import("./z80-ChfKhQuM.js"), "./zips/z81.json": () => import("./z81-D3KKv6i_.js"), "./zips/z82.json": () => import("./z82-DhUGIte9.js"), "./zips/z83.json": () => import("./z83-BKRUuHrr.js"), "./zips/z84.json": () => import("./z84-BlfxKcvW.js"), "./zips/z85.json": () => import("./z85-BiIf8zNW.js"), "./zips/z86.json": () => import("./z86-GaFINbFs.js"), "./zips/z87.json": () => import("./z87-DNlj0MnA.js"), "./zips/z88.json": () => import("./z88-BuPacNDG.js"), "./zips/z89.json": () => import("./z89-BDtIt7sV.js"), "./zips/z90.json": () => import("./z90-CPSzSF7a.js"), "./zips/z91.json": () => import("./z91-CLUgaAwo.js"), "./zips/z92.json": () => import("./z92-D6xY6Upc.js"), "./zips/z93.json": () => import("./z93-DfS4Kh-5.js"), "./zips/z94.json": () => import("./z94-B4l5sOxM.js"), "./zips/z95.json": () => import("./z95-BKZUYd7t.js"), "./zips/z96.json": () => import("./z96-DbBKeZTb.js"), "./zips/z97.json": () => import("./z97-Dp9nUTC8.js"), "./zips/z98.json": () => import("./z98-Ukjnu72h.js"), "./zips/z99.json": () => import("./z99-DLoSb7jN.js") }), `./zips/z${o}.json`, 3);
   return s;
-}, l = (o) => {
-  n.host = o.host || j.host;
-}, u = () => e;
+}, g = async () => {
+  try {
+    if (z.host !== "") {
+      const { default: s } = await import(`${z.host}/pref-to-chunks.json`);
+      return s;
+    }
+    const { default: o } = await import("./pref-to-chunks-D63ZNUjN.js");
+    return o;
+  } catch {
+    return null;
+  }
+}, d = async () => {
+  try {
+    if (z.host !== "") {
+      const { default: s } = await import(`${z.host}/cities-by-pref.json`);
+      return s;
+    }
+    const { default: o } = await import("./cities-by-pref-DYQpXsOw.js");
+    return o;
+  } catch {
+    return null;
+  }
+}, b = (o) => {
+  z.host = o.host || c.host;
+}, $ = () => u.map((o, s) => ({
+  key: String(s + 1).padStart(2, "0"),
+  name: o
+})), v = async (o) => {
+  const s = typeof o == "string" ? Number.parseInt(o, 10) : o;
+  if (!Number.isInteger(s) || s < 1 || s > 47)
+    throw new Error(`Prefecture index must be an integer between 1 and 47: ${o}`);
+  const n = await d();
+  if (n && n[String(s)])
+    return n[String(s)].map(([i, r]) => ({
+      key: i.toString(),
+      name: r
+    }));
+  const t = /* @__PURE__ */ new Map(), p = await g(), e = (p == null ? void 0 : p[String(s)]) ?? Array.from({ length: 100 }, (i, r) => r.toString().padStart(2, "0")), m = await Promise.allSettled(
+    e.map((i) => f(i))
+  );
+  for (const i of m) {
+    if (i.status !== "fulfilled" || !i.value)
+      continue;
+    const r = i.value;
+    for (const [, l] of Object.entries(r)) {
+      const [y, j, a] = l;
+      y === s && a && !t.has(j.toString()) && t.set(j.toString(), a);
+    }
+  }
+  return Array.from(t.entries()).map(([i, r]) => ({ key: i, name: r })).sort((i, r) => parseInt(i.key) - parseInt(r.key));
+};
 export {
-  l as configureJposta,
-  f as getAddress,
-  u as getPrefs
+  b as configureJposta,
+  w as getAddress,
+  v as getCitiesByPref,
+  $ as getPrefs
 };

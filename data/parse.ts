@@ -21,10 +21,17 @@ const parseCsv = () => {
 	}
 
 	let count = 0;
+
+	// Track which prefectures appear in which chunks
+	const prefToChunksMap: Map<number, Set<string>> = new Map();
+
+	// Track cities by prefecture for optimized lookup
+	const citiesByPrefMap: Map<number, Map<number, string>> = new Map();
+
 	let chunk: {
 		key: string;
 		data: {
-			[key: string]: [number, string, string];
+			[key: string]: [number, number, string, string];
 		};
 	} = {
 		key: "",
@@ -46,6 +53,7 @@ const parseCsv = () => {
 				: rawArea;
 
 		const prefNum = Number.parseInt(code.slice(0, 2));
+		const cityCode = Number.parseInt(code.slice(2, 5));
 		if (!pref) {
 			console.error(
 				`pref not found prefNum:${prefNum} record:${JSON.stringify(record)}`,
@@ -54,6 +62,21 @@ const parseCsv = () => {
 		}
 
 		const chunkKey = zip.slice(0, 2);
+
+		// Track which prefectures appear in which chunks
+		if (!prefToChunksMap.has(prefNum)) {
+			prefToChunksMap.set(prefNum, new Set());
+		}
+		prefToChunksMap.get(prefNum)!.add(chunkKey);
+
+		// Track cities by prefecture (for optimized getCitiesByPref)
+		if (!citiesByPrefMap.has(prefNum)) {
+			citiesByPrefMap.set(prefNum, new Map());
+		}
+		if (!citiesByPrefMap.get(prefNum)!.has(cityCode)) {
+			citiesByPrefMap.get(prefNum)!.set(cityCode, city);
+		}
+
 		if (chunk.key === "") {
 			chunk = {
 				key: chunkKey,
@@ -73,13 +96,42 @@ const parseCsv = () => {
 			continue;
 		}
 
-		chunk.data[zip] = [prefNum, city, area];
+		chunk.data[zip] = [prefNum, cityCode, city, area];
 	}
 
 	// write the last chunk
 	if (chunk.key !== "") {
 		fs.writeFileSync(`${OUTPUT_DIR}/z${chunk.key}.json`, JSON.stringify(chunk.data));
 	}
+
+	// build prefecture-to-chunks index
+	const prefToChunksIndex: Record<string, string[]> = {};
+	for (let prefNum = 1; prefNum <= 47; prefNum++) {
+		const chunks = prefToChunksMap.get(prefNum);
+		if (chunks && chunks.size > 0) {
+			prefToChunksIndex[String(prefNum)] = Array.from(chunks).sort();
+		}
+	}
+	fs.writeFileSync(
+		`${OUTPUT_DIR}/pref-to-chunks.json`,
+		JSON.stringify(prefToChunksIndex),
+	);
+
+	// build cities-by-pref index for optimized getCitiesByPref
+	// Format: { "prefNum": [[cityCode, cityName], ...], ... }
+	const citiesByPrefIndex: Record<string, [number, string][]> = {};
+	for (let prefNum = 1; prefNum <= 47; prefNum++) {
+		const cities = citiesByPrefMap.get(prefNum);
+		if (cities && cities.size > 0) {
+			citiesByPrefIndex[String(prefNum)] = Array.from(cities.entries())
+				.map(([code, name]) => [code, name] as [number, string])
+				.sort((a, b) => a[0] - b[0]);
+		}
+	}
+	fs.writeFileSync(
+		`${OUTPUT_DIR}/cities-by-pref.json`,
+		JSON.stringify(citiesByPrefIndex),
+	);
 
 	console.log(`processed ${count} records.`);
 };
