@@ -145,6 +145,22 @@ const fetchPrefToChunksIndex = async (): Promise<Record<string, string[]> | null
 	}
 };
 
+const fetchCitiesByPrefIndex = async (): Promise<Record<string, [number, string][]> | null> => {
+	try {
+		if (currentConfig.host !== "") {
+			const { default: index } = await import(
+				`${currentConfig.host}/cities-by-pref.json`
+			);
+			return index as unknown as Record<string, [number, string][]>;
+		}
+
+		const { default: index } = await import("./zips/cities-by-pref.json");
+		return index as unknown as Record<string, [number, string][]>;
+	} catch {
+		return null;
+	}
+};
+
 export const configureJposta = (config: Partial<JpostaConfig>) => {
 	currentConfig.host = config.host || defaultConfig.host;
 };
@@ -163,6 +179,16 @@ export const getCitiesByPref = async (prefIndex: string | number): Promise<City[
 		throw new Error(`Prefecture index must be an integer between 1 and 47: ${prefIndex}`);
 	}
 
+	// Try to use the optimized cities-by-pref index first
+	const citiesIndex = await fetchCitiesByPrefIndex();
+	if (citiesIndex && citiesIndex[String(prefNumber)]) {
+		return citiesIndex[String(prefNumber)].map(([code, name]) => ({
+			key: code.toString(),
+			name,
+		}));
+	}
+
+	// Fallback to the old method if index is not available
 	const citiesMap = new Map<string, string>();
 
 	// Determine which chunks to load using the index (fallback to all chunks if unavailable)

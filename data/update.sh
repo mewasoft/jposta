@@ -6,7 +6,17 @@ CSV_FILE="utf_ken_all.csv"
 TEMP_CSV="temp_utf_ken_all.csv"
 
 echo "[INFO] Downloading from $URL..."
-wget -q "$URL" -O "$ZIP_FILE"
+if command -v wget &>/dev/null; then
+    wget -q "$URL" -O "$ZIP_FILE"
+else
+    curl -sSL "$URL" -o "$ZIP_FILE"
+fi
+
+if [ ! -s "$ZIP_FILE" ]; then
+    echo "[ERROR] Download failed or empty: $ZIP_FILE"
+    rm -f "$ZIP_FILE"
+    exit 1
+fi
 
 echo "[INFO] Unzipping $ZIP_FILE to $TEMP_CSV..."
 unzip -q -p "$ZIP_FILE" > "$TEMP_CSV"
